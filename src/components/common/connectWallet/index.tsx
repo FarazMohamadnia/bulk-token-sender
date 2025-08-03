@@ -3,16 +3,24 @@ import { useEVM } from "../../../module/evmBase";
 import { useTVM } from "../../../module/tvmBase";
 import { useChainStore } from "../../../store/chain";
 import { useState } from "react";
+import { useSVM } from "../../../module/svmBase";
 
 export default function ConnectWallet() {
   const { chain } = useChainStore();
-  const { connectors, connect, address : evmAddress, isConnected , disconnect } = useEVM();
+  const {
+    connectors,
+    connect,
+    address: evmAddress,
+    isConnected,
+    disconnect,
+  } = useEVM();
   const {
     tonConnect,
     address: tonAddress,
     isConnected: isTonConnected,
-    disconnectTon
+    disconnectTon,
   } = useTVM();
+  const { connect: connectSolana , disconnectWallet , address: solanaAddress , isConnected: isSolanaConnected} = useSVM();
   const [showDropdown, setShowDropdown] = useState(false);
 
   const handleConnect = async () => {
@@ -26,7 +34,7 @@ export default function ConnectWallet() {
     ) {
       connect({ connector: connectors[0] });
     } else {
-      console.log("solana");
+      connectSolana();
     }
   };
 
@@ -42,15 +50,16 @@ export default function ConnectWallet() {
     ) {
       connect({ connector: connectors[0] });
     } else {
-      console.log("solana");
+      connectSolana();
     }
     setShowDropdown(false);
   };
 
-  const handleDisconnect = async() => {
+  const handleDisconnect = async () => {
     // Add disconnect logic here
-    await disconnectTon();
-    await disconnect();
+    disconnectTon();
+    disconnect();
+    disconnectWallet();
     setShowDropdown(false);
   };
 
@@ -59,8 +68,7 @@ export default function ConnectWallet() {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  const isWalletConnected = isConnected || isTonConnected;
-  
+  const isWalletConnected = isConnected || isTonConnected || isSolanaConnected;
   return (
     <div className="text-center my-3 relative">
       {!isWalletConnected ? (
@@ -76,7 +84,12 @@ export default function ConnectWallet() {
             onClick={() => setShowDropdown(!showDropdown)}
             className="bg-white text-black px-8 py-2 rounded-md hover:bg-gray-200 flex items-center gap-2 mx-auto"
           >
-            <span>{formatAddress(isTonConnected ? toUserFriendlyAddress(tonAddress ?? "") : evmAddress)}</span>
+            <span>
+              {formatAddress(
+                isTonConnected ? toUserFriendlyAddress(tonAddress ?? "")
+                  : evmAddress ? evmAddress : solanaAddress
+              )}
+            </span>
             <svg
               className={`w-4 h-4 transition-transform ${
                 showDropdown ? "rotate-180" : ""
@@ -102,7 +115,10 @@ export default function ConnectWallet() {
                   {isConnected && evmAddress}
                 </p>
                 <p className="text-sm font-mono text-black break-all">
-                  {isTonConnected &&  toUserFriendlyAddress(tonAddress ?? "")}
+                  {isSolanaConnected && solanaAddress}
+                </p>
+                <p className="text-sm font-mono text-black break-all">
+                  {isTonConnected && toUserFriendlyAddress(tonAddress ?? "")}
                 </p>
               </div>
               <div className="p-2">

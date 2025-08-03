@@ -14,6 +14,7 @@ import {
 import { API } from "../../../api";
 import { fetchData } from "../../../utils/fetch";
 import Swal from "sweetalert2";
+import { useSVM } from "../../../module/svmBase";
 
 export default function Section1() {
   const [userData, setUserData] = useState<User[]>([]);
@@ -26,6 +27,7 @@ export default function Section1() {
   const { chain } = useChainStore();
   const { sendTonTransaction } = useTVM();
   const { chainId, ApproveUsdt, sendBulkTransAction } = useEVM();
+  const { sendSplBatchTokenTransaction } = useSVM();
 
   const customTonData = () => {
     userData.map((user) => {
@@ -124,6 +126,14 @@ export default function Section1() {
           return console.log("Approve failed");
           setBtnLoading(false);
         }
+      }else if(chain === "sol"){
+        const response = await sendSplBatchTokenTransaction('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',userData.map((user) => ({
+          address: user.transaction?.wallet || "",
+          amount: (user.transaction?.token_amount || 0) * 10 ** USDT_Contract.ethereum.decimal
+        })))
+        console.log(response);
+        setHash(response[0]);
+        
       }
     } catch (err) {
       console.log(err);

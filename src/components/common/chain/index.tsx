@@ -6,6 +6,7 @@ const CHAINS = [
   { label: "Polygon", value: "polygon" },
   { label: "BNB Chain", value: "bsc" },
   { label: "TON", value: "ton" },
+  { label: "solana", value: "sol" },
   { label: "Sepolia (Testnet)", value: "sepolia" },
 ];
 
