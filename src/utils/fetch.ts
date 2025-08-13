@@ -1,7 +1,7 @@
 import { default as axios } from "axios";
 export interface FetchDataProps {
   url: string;
-  method: "GET" | "POST" ;
+  method: "GET" | "POST";
   body?: any;
   authToken?: string;
 }
@@ -12,7 +12,7 @@ export const fetchData = async ({
   authToken,
 }: FetchDataProps) => {
   const headers: Record<string, string> = {};
-  try{
+  try {
     if (authToken) {
       headers["Authorization"] = `Bearer ${authToken}`;
     }
@@ -24,8 +24,8 @@ export const fetchData = async ({
       headers,
     });
     return response;
-  }catch(error){
+  } catch (error: any) {
     console.log(error);
-    return null;
+    return error?.response;
   }
 };

@@ -3,7 +3,7 @@ import { fetchData } from "../../../utils/fetch";
 import { API } from "../../../api";
 import { toUserFriendlyAddress } from "@tonconnect/ui-react";
 import { useChainStore } from "../../../store/chain";
-
+import { useNavigate } from "react-router-dom";
 export interface User {
   id?: number;
   transaction?: {
@@ -30,6 +30,7 @@ export default function AddressTable({
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [selectedNetwork, setSelectedNetwork] = useState<string>("ALL");
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
   const { chain } = useChainStore();
   //   const networks = ["ALL", "TON", "ETHEREUM", "BNB", "POL", "SOL"];
 
@@ -39,7 +40,10 @@ export default function AddressTable({
       method: "GET",
       authToken: token || "",
     });
-
+    if(response.status == 401){
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
     // Merge all arrays from the response
     if (response?.data?.orders) {
       const allOrders = response.data.orders.flat();
