@@ -102,11 +102,42 @@ export const useTVM = () => {
       throw error; // Re-throw to allow handling by the caller
     }
   };
+  const sendBulkTonTransaction = async (packetData: any): Promise<any> => {
+    try {
+      const transactionData: any = [];
+
+      packetData.map((data: any) => {
+        const { tonAmount , OwnerAddress} = data;
+        const obj = {
+          address: OwnerAddress,
+          amount: Math.floor(tonAmount * 1000000000),
+        };
+        transactionData.push(obj)
+      });
+      const myTransaction = {
+        validUntil: Math.floor(Date.now() / 1000) + 360,
+        messages: transactionData,
+      }
+      console.log("myTransaction ::", myTransaction);
+      
+      const validate = await tonConnectUI.sendTransaction(myTransaction);
+      const bocCellBytes = await window.TonWeb.boc.Cell.oneFromBoc(
+        window.TonWeb.utils.base64ToBytes(validate.boc)
+      ).hash();
+      const hashBase64 = window.TonWeb.utils.bytesToBase64(bocCellBytes);
+      console.log("Transaction hash:", hashBase64);
+      return hashBase64; 
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      throw error; // Re-throw to allow handling by the caller
+    }
+  };
   return {
     tonConnect,
     address: wallet?.account?.address,
     isConnected: wallet?.account?.address ? true : false,
     disconnectTon,
     sendTonTransaction,
+    sendBulkTonTransaction,
   };
 };

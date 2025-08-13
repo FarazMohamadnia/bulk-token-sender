@@ -25,14 +25,16 @@ export default function Section1() {
   const [btnLoading, setBtnLoading] = useState(false);
   const [flag, setFlag] = useState(false);
   const { chain } = useChainStore();
-  const { sendTonTransaction } = useTVM();
+  const { sendTonTransaction, sendBulkTonTransaction } = useTVM();
   const { chainId, ApproveUsdt, sendBulkTransAction } = useEVM();
   const { sendSplBatchTokenTransaction } = useSVM();
+  const [ton, setTon] = useState(false);
 
   const customTonData = () => {
     userData.map((user) => {
       const customData = {
         coinamount: user.transaction?.token_amount,
+        tonAmount: user.transaction?.ton_amount,
         decimal: TonTokens["USDT"].decimal,
         OwnerAddress: toUserFriendlyAddress(user.transaction?.wallet || ""), // owner address
         recipientAddress: TonTokens["USDT"].reciverAddress, // recipient address
@@ -45,9 +47,15 @@ export default function Section1() {
     setBtnLoading(true);
     try {
       if (chain === "ton") {
-        const response = await sendTonTransaction(packetData);
-        setHash(response);
-        setBtnLoading(false);
+        if(ton){
+          const response = await sendBulkTonTransaction(packetData);
+          setHash(response);
+          setBtnLoading(false);
+        }else{
+          const response = await sendTonTransaction(packetData);
+          setHash(response);
+          setBtnLoading(false);
+        }
       } else if (chain === "bsc") {
         const response = await ApproveUsdt(
           USDT_Contract.bsc.address,
@@ -71,8 +79,8 @@ export default function Section1() {
           setHash(sendTransaction as `0x${string}`);
           setBtnLoading(false);
         } else {
-          return console.log("Approve failed");
           setBtnLoading(false);
+          return console.log("Approve failed");
         }
       } else if (chain === "polygon") {
         const response = await ApproveUsdt(
@@ -97,8 +105,8 @@ export default function Section1() {
           setHash(sendTransaction as `0x${string}`);
           setBtnLoading(false);
         } else {
-          return console.log("Approve failed");
           setBtnLoading(false);
+          return console.log("Approve failed");
         }
       } else if (chain === "ethereum") {
         const response = await ApproveUsdt(
@@ -123,18 +131,22 @@ export default function Section1() {
           setHash(sendTransaction as `0x${string}`);
           setBtnLoading(false);
         } else {
-          return console.log("Approve failed");
           setBtnLoading(false);
+          return console.log("Approve failed");
         }
-      }else if(chain === "sol"){
-        const response = await sendSplBatchTokenTransaction('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',userData.map((user) => ({
-          address: user.transaction?.wallet || "",
-          amount: (user.transaction?.token_amount || 0) * 10 ** USDT_Contract.ethereum.decimal
-        })))
+      } else if (chain === "sol") {
+        const response = await sendSplBatchTokenTransaction(
+          "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+          userData.map((user) => ({
+            address: user.transaction?.wallet || "",
+            amount:
+              (user.transaction?.token_amount || 0) *
+              10 ** USDT_Contract.ethereum.decimal,
+          }))
+        );
         console.log(response);
         setHash(response[0]);
         setBtnLoading(false);
-
       }
     } catch (err) {
       console.log(err);
@@ -187,13 +199,33 @@ export default function Section1() {
     }
   }, [userData]);
 
-
   useEffect(() => {
-    setPacketData([])
+    setPacketData([]);
   }, []);
 
   return (
     <div className="flex flex-col gap-2 justify-center items-center">
+      {
+        chain === "ton" && (
+          <div className="flex items-center justify-center mt-4">
+          <label className="flex items-center cursor-pointer">
+          <div className="mr-3 text-white font-medium">USDT</div>
+            <div className="relative">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                id="toggle-switch"
+                checked={ton}
+                onChange={() => setTon(!ton)}
+              />
+              <div className="block bg-gray-600 w-14 h-8 rounded-full peer-checked:bg-green-500 transition-colors duration-300"></div>
+              <div className="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 ease-in-out peer-checked:translate-x-6"></div>
+            </div>
+            <div className="ml-3 text-white font-medium">TON</div>
+          </label>
+        </div>
+        )
+      }
       <div>{/* <TokenSelector /> */}</div>
       <p>Active Evm Chain : {chainId}</p>
       <div>
