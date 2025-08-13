@@ -133,7 +133,8 @@ export default function Section1() {
         })))
         console.log(response);
         setHash(response[0]);
-        
+        setBtnLoading(false);
+
       }
     } catch (err) {
       console.log(err);
